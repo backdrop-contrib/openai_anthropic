@@ -1,0 +1,80 @@
+<?php
+
+/**
+ * @file
+ * Anthropic Claude AI provider integration for the OpenAI module.
+ *
+ * This module enables using Claude AI models (from Anthropic) through the
+ * OpenAI module's unified provider interface.
+ */
+
+/**
+ * Implements hook_autoload_info().
+ */
+function openai_anthropic_autoload_info() {
+  return [
+    'AnthropicAdapter' => 'includes/AnthropicAdapter.php',
+  ];
+}
+
+/**
+ * Implements hook_openai_provider_info().
+ *
+ * Registers Anthropic Claude as an available AI provider.
+ */
+function openai_anthropic_openai_provider_info() {
+  return [
+    'anthropic' => [
+      'label' => t('Anthropic'),
+      'description' => t('Use Claude AI models with superior reasoning and long-context support.'),
+      'class' => 'AnthropicAdapter',
+      'website' => 'https://www.anthropic.com/',
+      'key_url' => 'https://console.anthropic.com/account/keys',
+      'models_url' => 'https://docs.anthropic.com/en/docs/about/models/overview',
+    ],
+  ];
+}
+
+/**
+ * Implements hook_openai_provider_settings_alter().
+ *
+ * Adds Anthropic-specific settings to the OpenAI module settings form.
+ */
+function openai_anthropic_openai_provider_settings_alter(&$settings, $context) {
+  // Only add settings if Anthropic is the selected provider
+  if ($context['provider'] !== 'anthropic') {
+    return;
+  }
+
+  $available_keys = function_exists('key_get_key_names_as_options')
+    ? key_get_key_names_as_options()
+    : [];
+
+  $settings['api_key_anthropic'] = [
+    '#type' => 'key_select',
+    '#title' => t('Anthropic API Key'),
+    '#default_value' => config_get('openai.settings', 'api_key_anthropic') ?: '',
+    '#options' => $available_keys,
+    '#key_filters' => ['type' => 'authentication'],
+    '#description' => t('Get your API key from <a href="https://console.anthropic.com/account/keys" target="_blank">Anthropic Console</a>. Requires billing to be set up.'),
+    '#required' => TRUE,
+    '#weight' => -5,
+  ];
+
+  // Note: model discovery and display are handled by the main OpenAI
+  // settings page so we avoid duplicating the list here. The adapter
+  // returns model labels that include the model id so the generic OpenAI
+  // renderer will display full IDs and readable names.
+
+  if (isset($context['form'])) {
+    $context['form']['#submit'][] = 'openai_anthropic_provider_settings_submit';
+  }
+}
+
+/**
+ * Submit handler for Anthropic provider settings.
+ */
+function openai_anthropic_provider_settings_submit($form, &$form_state) {
+  // Any custom Anthropic-specific processing can go here
+  // Currently delegated to main openai_settings_form_submit
+}
