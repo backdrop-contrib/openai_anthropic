@@ -1,12 +1,8 @@
-[name]
+name = OpenAI Anthropic Provider
+description = Use Claude AI models through the OpenAI module API.
+backdrop = 1.x
 type = module
-
+package = OpenAI
 dependencies[] = key
 dependencies[] = openai
-
-core = 1.x
-backdrop = 1.x
-version = 1.x-1.0
-description = Use Claude AI models through the OpenAI module API.
-name = OpenAI Anthropic Provider
 
