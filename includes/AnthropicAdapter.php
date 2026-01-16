@@ -20,14 +20,20 @@ class AnthropicAdapter implements AIClientInterface {
   /** @var string */
   protected $baseUrl = 'https://api.anthropic.com/v1';
 
+  /** @var OpenAIApi|null */
+  protected $api = NULL;
+
   /**
    * Constructor.
    *
    * @param string $apiKey
    *   Anthropic API key.
+   * @param OpenAIApi|null $api
+   *   Optional OpenAIApi wrapper for logging.
    */
-  public function __construct($apiKey) {
+  public function __construct($apiKey, ?OpenAIApi $api = NULL) {
     $this->apiKey = trim($apiKey);
+    $this->api = $api;
 
     if (empty($this->apiKey)) {
       throw new \Exception('Anthropic API key is required');
@@ -92,6 +98,7 @@ class AnthropicAdapter implements AIClientInterface {
    * {@inheritdoc}
    */
   public function completions(string $model, string $prompt, $temperature, $max_tokens = 512, bool $stream_response = FALSE) {
+    $start_time = microtime(TRUE);
     try {
       $params = [
         'model' => $model,
@@ -131,9 +138,31 @@ class AnthropicAdapter implements AIClientInterface {
   }
 
   /**
+   * Get models by their capability.
+   */
+  public function getModelsByCapability($capability): array {
+    $models = $this->getModels();
+    if ($capability === 'text') {
+      return $models;
+    }
+    if ($capability === 'vision') {
+      $vision_models = [];
+      foreach ($models as $id => $label) {
+        // Claude 3 and later generally support vision
+        if (preg_match('/claude-3/i', $id)) {
+          $vision_models[$id] = $label;
+        }
+      }
+      return $vision_models;
+    }
+    return [];
+  }
+
+  /**
    * {@inheritdoc}
    */
   public function chat(string $model, array $messages, $temperature, $max_tokens = 1024, bool $stream_response = FALSE) {
+    $start_time = microtime(TRUE);
     try {
       // Convert messages to Anthropic format
       $anthropic_messages = $this->_convertMessages($messages);
@@ -236,7 +265,7 @@ class AnthropicAdapter implements AIClientInterface {
    * does not support embeddings. Return an empty array and log a warning so
    * callers receive a predictable shape and administrators can diagnose.
    */
-  public function embedding(string $input, string $model): array {
+  public function embedding(string $input, string $model, bool $log = TRUE): array {
     watchdog('openai_anthropic', 'Embedding requested but Anthropic does not support embeddings. Returning empty array.', [], WATCHDOG_WARNING);
     return [];
   }
