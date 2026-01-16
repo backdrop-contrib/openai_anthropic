@@ -50,10 +50,15 @@ function openai_anthropic_openai_provider_settings_alter(&$settings, $context) {
     ? key_get_key_names_as_options()
     : [];
 
+  // Read the central providers mapping so the provider settings show the
+  // currently configured key as the default (single source of truth).
+  $providers_root = config_get('openai.settings', 'providers') ?: [];
+  $default_key = !empty($providers_root['anthropic']['api_key']) ? $providers_root['anthropic']['api_key'] : '';
+
   $settings['api_key_anthropic'] = [
     '#type' => 'key_select',
     '#title' => t('Anthropic API Key'),
-    '#default_value' => config_get('openai.settings', 'api_key_anthropic') ?: '',
+    '#default_value' => $default_key,
     '#options' => $available_keys,
     '#key_filters' => ['type' => 'authentication'],
     '#description' => t('Get your API key from <a href="https://console.anthropic.com/account/keys" target="_blank">Anthropic Console</a>. Requires billing to be set up.'),
