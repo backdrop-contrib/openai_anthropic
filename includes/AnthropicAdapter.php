@@ -284,7 +284,7 @@ class AnthropicAdapter implements AIClientInterface {
       // Set stream flag for Anthropic API
       $params['stream'] = TRUE;
 
-      $url = $this->client->baseUrl . '/messages';
+      $url = $this->baseUrl . '/messages';
 
       $options = [
         'method' => 'POST',
