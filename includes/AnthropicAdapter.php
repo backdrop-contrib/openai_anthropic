@@ -266,7 +266,15 @@ class AnthropicAdapter implements AIClientInterface {
    * callers receive a predictable shape and administrators can diagnose.
    */
   public function embedding(string $input, string $model, bool $log = TRUE): array {
-    watchdog('openai_anthropic', 'Embedding requested but Anthropic does not support embeddings. Returning empty array.', [], WATCHDOG_WARNING);
+    // Record a log in openai_log if possible to show that it was attempted
+    if (isset($this->api) && method_exists($this->api, 'recordLog')) {
+      $this->api->recordLog('embedding', $model, ['input' => $input], NULL, FALSE, 0, 'Anthropic does not support embeddings.', !$log);
+    }
+    if ($log) {
+      // Only log to watchdog if it's not a probing call ($log is usually FALSE during probes)
+      // and only if explicitly requested.
+      watchdog('openai_anthropic', 'Embedding requested but Anthropic does not support embeddings. Returning empty array.', [], WATCHDOG_DEBUG);
+    }
     return [];
   }
 
