@@ -268,7 +268,10 @@ class AnthropicAdapter implements AIClientInterface {
   public function embedding(string $input, string $model, bool $log = TRUE): array {
     // Record a log in openai_log if possible to show that it was attempted
     if (isset($this->api) && method_exists($this->api, 'recordLog')) {
-      $this->api->recordLog('embedding', $model, ['input' => $input], NULL, FALSE, 0, 'Anthropic does not support embeddings.', !$log);
+      // When `$log` is FALSE this is usually a probing call; set a clearly
+      // named flag to indicate the recorder should skip embedding output.
+      $skip_embedding_output = !$log;
+      $this->api->recordLog('embedding', $model, ['input' => $input], NULL, FALSE, 0, 'Anthropic does not support embeddings.', $skip_embedding_output);
     }
     if ($log) {
       // Only log to watchdog if it's not a probing call ($log is usually FALSE during probes)
