@@ -275,7 +275,7 @@ class AnthropicAdapter implements AIClientInterface {
     if ($log) {
       // Only log to watchdog if it's not a probing call ($log is usually FALSE during probes)
       // and only if explicitly requested.
-      watchdog('openai_anthropic', 'Embedding requested but Anthropic does not support embeddings. Returning empty array.', [], WATCHDOG_DEBUG);
+      watchdog('openai_anthropic', 'Embedding requested but Anthropic does not support embeddings. Returning empty array.', [], WATCHDOG_WARNING);
     }
     return [];
   }
