@@ -5,4 +5,3 @@ type = module
 package = OpenAI
 dependencies[] = key
 dependencies[] = openai
-
